@@ -39,7 +39,13 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
     @Query(value = "SELECT * FROM diary WHERE (JSON_UNQUOTE(JSON_EXTRACT(blocks, CONCAT('$[', ?1, '].data.text'))) LIKE %?2% OR title LIKE %?2%) AND user_id = ?3 ", nativeQuery = true)
     Page<Diary> findSearchList(Integer idx, String content, Long userid, Pageable pageable);
 
-    @Query("SELECT d FROM Diary d LEFT JOIN d.hashtags h WHERE h.hashtagName = :content AND d.userId = :userid")
+    @Query("""
+    SELECT d FROM Diary d
+    JOIN DiaryHashtag dh ON d.id = dh.diary.id
+    JOIN Hashtag h ON dh.hashtag.id = h.id
+    WHERE h.hashtagName = :content
+    AND d.user.id = :userid
+    """)
     Page<Diary> findHashSearchList(@Param("content") String content, @Param("userid") Long userid, Pageable pageable);
 
 
